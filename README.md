@@ -5,10 +5,12 @@ JSS Utility scripts featuring the JAMF API by Jeffrey Compton
 Table of Contents
 =================
 
+  * [Table of Contents](#table-of-contents)
   * [jssMigrationUtility\.bash](#jssmigrationutilitybash)
   * [getSelfServicePolicyIcons\.bash](#getselfservicepolicyiconsbash)
   * [generateSaticGroupMembershipList\.bash](#generatesaticgroupmembershiplistbash)
   * [addMacToStaticGroupOnEnroll\.bash](#addmactostaticgrouponenrollbash)
+  * [purgeAllPoliciesInCategory\.bash](#purgeallpoliciesincategorybash)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
   
@@ -120,3 +122,22 @@ enrollment event.
 
 As computers enroll in your new JSS, they will put themselves back into appropriate 
 static groups.
+
+For security reasons - API credentials are not stored in the script.  They are set as
+parameters to be defined in your policy.
+
+For a version of this script that you can download straight into your JSS, download 
+addMacToStaticGroupOnEnroll.bash.xml instead.
+
+purgeAllPoliciesInCategory.bash
+==================
+
+Casper Admins are sometimes known to be pack rats.  We disable policies but keep them 
+in the JSS for ages "just in case."  Sometimes we even create a category like 
+"zzzzz_Disabled_Policies" so that we can keep old, inactive policies at the bottom of
+the policy list out of the way.
+
+But there may come a time when you want to clean all those up and just delete them.  If 
+you are like me though, finding the time to click on each one and clicking "Delete" is
+just not feasible.  This script allows you to purge all policies from a single category.
+
