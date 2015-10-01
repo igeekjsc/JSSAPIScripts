@@ -1,7 +1,13 @@
-######JSSAPIScripts
+#JSSAPIScripts
 
 JSS Utility scripts featuring the JAMF API by Jeffrey Compton
 
+Table of Contents
+=================
+
+  * [jssMigrationUtility\.bash](#jssmigrationutilitybash)
+  * [getSelfServicePolicyIcons\.bash](#getselfservicepolicyiconsbash)
+  
 jssMigrationUtility.bash
 ==================
 
