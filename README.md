@@ -5,11 +5,10 @@ JSS Utility scripts featuring the JAMF API by Jeffrey Compton
 Table of Contents
 =================
 
-  * [JSSAPIScripts](#jssapiscripts)
   * [jssMigrationUtility\.bash](#jssmigrationutilitybash)
   * [getSelfServicePolicyIcons\.bash](#getselfservicepolicyiconsbash)
   * [generateSaticGroupMembershipList\.bash](#generatesaticgroupmembershiplistbash)
-  * [addComputerToStaticGroupOnEnroll\.bash](#addcomputertostaticgrouponenrollbash)
+  * [addMacToStaticGroupOnEnroll\.bash](#addmactostaticgrouponenrollbash)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
   
@@ -84,13 +83,21 @@ for more details.
 The output will look like --
 
 FAK3APLS3RL1,StaticGroup01
+
 FAK3APLS3RL2,StaticGroup01
+
 FAK3APLS3RL3,StaticGroup01
+
 FAK3APLS3RL4,StaticGroup01
+
 FAK3APLS3RL1,StaticGroup02
+
 FAK3APLS3RL2,StaticGroup02
+
 FAK3APLS3RL1,StaticGroup03
+
 FAK3APLS3RL2,StaticGroup03
+
 FAK3APLS3RL3,StaticGroup03
 
 In the example above, 4 computers are in *StaticGroup01*, 2 computers are 
@@ -104,7 +111,7 @@ This is designed as a use-only-once script.  The idea is to run this against you
 to generate a list you can paste into the **addComputerToStaticGroupOnEnroll.bash** script,
 which will be run once per computer on enrollment.  See below for more info.
 
-addComputerToStaticGroupOnEnroll.bash
+addMacToStaticGroupOnEnroll.bash
 ==================
 
 This script is designed to be uploaded to your new JSS and run as a policy with
