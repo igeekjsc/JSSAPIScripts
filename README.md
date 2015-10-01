@@ -1,13 +1,11 @@
-JSSAPIScripts
+######JSSAPIScripts
+
+JSS Utility scripts featuring the JAMF API by Jeffrey Compton
+
+jssMigrationUtility.bash
 ==================
 
-Utility scripts featuring the JAMF API by Jeffrey Compton
-
-###Index
-[jssMigration1.1.bash](#jssmigrationutility)  
-[getSelfServicePolicyicons.bash](#getselfservicepolicyicons)  
-
-####**jssMigration1.1.bash**<br>
+Version 1.1
 
 The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
 upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
@@ -41,7 +39,23 @@ By default, XML files are stored to ~/Desktop/JSS_Migration  Before work begins 
 resource, the utility looks for the presence of any previously downloaded resources and
 archives to ~/Desktop/JSS_Migration/archives if necessary
 
-####**getSelfServicePolicyicons.bash**<br>
 
-The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
-upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
+getSelfServicePolicyIcons.bash
+==================
+
+Casper Admins aren't perfect.  Sometimes we forget to save all the icons we use for 
+Self Service policies.  After all - they are in the JSS.  But if you have to stand up
+a separate JSS or a new one from scratch - you may want to get those.
+
+This script finds all Self Service policies in your JSS and downloads the icons for each.
+
+But what if we have uploaded the same icon more than once ? Now we have multiple versions
+of the same icon, each slightly different - different resolution, new style, etc.  
+
+No worries - this script will ensure that all flavors of the same icon are downloaded.  
+The file name will be appended with a "-" and the policy ID, ensuring all versions of 
+same icon are downloaded.
+
+But wait!  There's more!  At the end of the download process, you will be asked if you
+want to rename each file with a resolution indicator.  That way you can more easily find
+the right version of the icon you are looking for.
