@@ -3,11 +3,11 @@ JSSAPIScripts
 
 Utility scripts featuring the JAMF API by Jeffrey Compton
 
-###Index:
+==================
+
+###Index
 [jssMigration_1.1.bash]
 [getSelfServicePolicyicons.bash]
-
-==================
 
 ####**jssMigration_1.1.bash**<br>
 
