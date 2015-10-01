@@ -2,7 +2,6 @@ JSSAPIScripts
 ==================
 
 Utility scripts featuring the JAMF API by Jeffrey Compton
-==================
 
 ###Index
 [jssMigration_1.1.bash](#jssmigrationutility)  
@@ -43,3 +42,6 @@ resource, the utility looks for the presence of any previously downloaded resour
 archives to ~/Desktop/JSS_Migration/archives if necessary
 
 ####**getSelfServicePolicyicons.bash**<br>
+
+The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
+upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
