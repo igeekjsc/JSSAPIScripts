@@ -83,21 +83,13 @@ for more details.
 The output will look like --
 
 FAK3APLS3RL1,StaticGroup01
-
 FAK3APLS3RL2,StaticGroup01
-
 FAK3APLS3RL3,StaticGroup01
-
 FAK3APLS3RL4,StaticGroup01
-
 FAK3APLS3RL1,StaticGroup02
-
 FAK3APLS3RL2,StaticGroup02
-
 FAK3APLS3RL1,StaticGroup03
-
 FAK3APLS3RL2,StaticGroup03
-
 FAK3APLS3RL3,StaticGroup03
 
 In the example above, 4 computers are in *StaticGroup01*, 2 computers are 
