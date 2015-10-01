@@ -82,29 +82,9 @@ and static group memberships.  (Run locally from your Mac)
 You must manually enter which static groups you want to query.  See comments in script
 for more details.
 
-The output will look like --
+Each line in the output will look like --
 
-FAK3APLS3RL1,StaticGroup01 
-
-FAK3APLS3RL2,StaticGroup01 
-
-FAK3APLS3RL3,StaticGroup01 
-
-FAK3APLS3RL4,StaticGroup01
- 
-FAK3APLS3RL1,StaticGroup02 
-
-FAK3APLS3RL2,StaticGroup02
- 
-FAK3APLS3RL1,StaticGroup03 
-
-FAK3APLS3RL2,StaticGroup03
- 
-FAK3APLS3RL3,StaticGroup03 
-
-
-In the example above, 4 computers are in *StaticGroup01*, 2 computers are 
-in *StaticGroup02*, and 3 computers are in *StaticGroup03*
+**FAK3APLS3RL1,StaticGroup01**
 
 **Important NOTE:** If your static group names have spaces or other special characters,
 you must manually replace with appropriate URL encoding handlers.  (e.g. "%20" for space)
