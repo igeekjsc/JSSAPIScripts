@@ -5,10 +5,11 @@ Utility scripts featuring the JAMF API by Jeffrey Compton
 
 ###Index:
 [jssMigration_1.1.bash](#jssmigration1.1) 
-
-####**jssMigration_1.1.bash**<br>
+[getSelfServicePolicyicons.bash](#getselfservicepolicyicons.bash) 
 
 ==================
+
+####**jssMigration_1.1.bash**<br>
 
 The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
 upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
@@ -41,3 +42,5 @@ Local File System:
 By default, XML files are stored to ~/Desktop/JSS_Migration  Before work begins on each
 resource, the utility looks for the presence of any previously downloaded resources and
 archives to ~/Desktop/JSS_Migration/archives if necessary
+
+####**getSelfServicePolicyicons.bash**<br>
