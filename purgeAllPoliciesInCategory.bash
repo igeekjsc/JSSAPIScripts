@@ -4,9 +4,11 @@
 read -p "Please enter your JSS URL (e.g. https://myJSS.myCompany.com:8443/)   : " jssURL
 echo -e "\nPlease enter the name of the category"
 echo "containing all policies you wish to purge."
-echo -e "\nYou MUST replace any spaces in your category name with \"%20\""
-echo "For example, a policy named \"My Policy\" should"
-echo -e "be entered as \"My%20Policy\"\n"
+echo -e "\nBE CAREFUL ABOUT SPECIAL CHARACTERS"
+echo -e "\nFor instance, you MUST replace any spaces in your category name with \"%20\""
+echo "e.g. a policy named \"My Policy\" should be entered as \"My%20Policy\""
+echo -e "\nFor more information about special characters in URLs, see"
+echo -e "http://www.w3schools.com/tags/ref_urlencode.asp \n"
 read -p "Category Name : " jssCategory
 read -p "Please enter your JSS user account : " jssUser
 read -p "Please enter your JSS user password : " -s jssPassword
