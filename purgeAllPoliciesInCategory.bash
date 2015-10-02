@@ -2,7 +2,6 @@
 
 #Authenticate
 read -p "Please enter your JSS URL (e.g. https://myJSS.myCompany.com:8443/)   : " jssURL
-#jssURL="https://jssapp01.kdc.capitalone.com:8443/"
 echo -e "\nPlease enter the name of the category"
 echo "containing all policies you wish to purge."
 echo -e "\nYou MUST replace any spaces in your category name with \"%20\""
