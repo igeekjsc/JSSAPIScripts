@@ -73,7 +73,7 @@ But wait!  There's more!  At the end of the download process, you will be asked 
 want to rename each file with a resolution indicator.  That way you can more easily find
 the right version of the icon you are looking for.
 
-generateSaticGroupMembershipList.bash
+[generateSaticGroupMembershipList.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/generateSaticGroupMembershipList.bash)
 ==================
 
 This tool simply generates a long comma-separated value list of computer serial numbers 
