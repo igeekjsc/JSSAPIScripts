@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 #Authenticate
 read -p "Please enter your JSS URL (e.g. https://myJSS.myCompany.com:8443/)   : " jssURL
 echo -e "\nPlease enter the name of the category"
@@ -18,18 +20,68 @@ echo ""
 
 
 #Generate raw xml file
+echo "Getting unformatted xml for policies in category $jssCategory ..."
 curl -k "$jssURL"JSSResource/policies/category/"$jssCategory" --user "$jssUser:$jssPassword" > /private/tmp/jssPolicyList.xml
 
+if (( $? == 0 ))
+	then echo "Download successful. Proceeding..."
+	else echo "Unable to communicate with JSS.  Aborting..." ; exit 1
+fi
+
 #Clean up the xml file
+echo "Formatting xml..."
 /usr/bin/xmllint -format /private/tmp/jssPolicyList.xml > /private/tmp/jssPolicyListFormatted.xml
+if (( $? == 0 ))
+	then echo "Parsing Successful. Proceeding..."
+	else echo "Unable to parse.  Most likely, there is a problem with your credentials.  Aborting..." ; exit 1
+fi
+
+#See if there are any policies in the category
+numberOfPoliciesInCategory=`cat /private/tmp/jssPolicyListFormatted.xml | grep "<size>" | head -1 | awk -F '<size>|</size>' '{print $2}'`
+
+if (( $numberOfPoliciesInCategory == 0 ))
+	then 
+		echo "Did not find any policies at all in category $jssCategory"
+		echo "Don't forget to adjust category name to accomodate for spaces and special chars."
+		echo "Exiting."
+		exit 1
+elif (( $numberOfPoliciesInCategory > 0 ))
+	then
+		echo "Found $numberOfPoliciesInCategory policies in $jssCategory"
+		echo "Proceeding..."
+else 
+	echo "An unknown error occurred.  Aborting..."
+	exit 1
+fi
+
+#List policies to delete before proceeding
+echo -e "\nThe following policies are about to be deleted from your JSS:\n"
+cat /private/tmp/jssPolicyListFormatted.xml | grep "<name>" | awk -F '<name>|</name>' '{print $2}'
+echo -e "\nAre you absolutely certain you want to delete these $numberOfPoliciesInCategory policies ?\n"
+read -p "Yes or No (y or n) : " confirmationChoice
+
+if [ $confirmationChoice == "y" ]
+	then echo "Proceeding..."
+elif [ $confirmationChoice == "Y" ]
+	then echo "Proceeding..."
+elif [ $confirmationChoice == "yes" ]
+	then echo "Proceeding..."
+elif [ $confirmationChoice == "Yes" ]
+	then echo "Proceeding..."
+elif [ $confirmationChoice == "YES" ]
+	then echo "Proceeding..."
+else echo "OK.  Aborting now..." ; exit 1
+fi
 
 #Create plain file of policy ID's
-cat /private/tmp/jssPolicyListFormatted.xml | grep "<id>" | awk -F'<id>|</id>' '{print $2}' > /private/tmp/policyList.txt
+echo "Generating a plain txt file of policy ID's..."
+cat /private/tmp/jssPolicyListFormatted.xml | grep "<id>" | awk -F'<id>|</id>' '{print $2}' > /private/tmp/policyList
 
-policyList=$(cat /private/tmp/policyList.txt)
+policyList=$(cat /private/tmp/policyList)
 
 for policy in $policyList
 	do
+		echo "Deleting policy ID $policy ..."
 		curl -k "$jssURL"JSSResource/policies/id/$policy --user "$jssUser:$jssPassword" -X DELETE
 	done
 
