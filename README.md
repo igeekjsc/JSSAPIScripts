@@ -14,7 +14,7 @@ Table of Contents
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
   
-jssMigrationUtility.bash
+[jssMigrationUtility.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/jssMigrationUtility.bash)
 ==================
 
 Version 1.1
@@ -53,7 +53,7 @@ resource, the utility looks for the presence of any previously downloaded resour
 archives to ~/Desktop/JSS_Migration/archives if necessary
 
 
-getSelfServicePolicyIcons.bash
+[getSelfServicePolicyIcons.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/getSelfServicePolicyicons.bash)
 ==================
 
 Casper Admins aren't perfect.  Sometimes we forget to save all the icons we use for 
@@ -94,7 +94,7 @@ This is designed as a use-only-once script.  The idea is to run this against you
 to generate a list you can paste into the **addComputerToStaticGroupOnEnroll.bash** script,
 which will be run once per computer on enrollment.  See below for more info.
 
-addMacToStaticGroupOnEnroll.bash
+[addMacToStaticGroupOnEnroll.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/addMacToStaticGroupOnEnroll.bash)
 ==================
 
 This script is designed to be uploaded to your new JSS and run as a policy with
@@ -109,7 +109,7 @@ parameters to be defined in your policy.
 For a version of this script that you can download straight into your JSS, download 
 addMacToStaticGroupOnEnroll.bash.xml instead.
 
-purgeAllPoliciesInCategory.bash
+[purgeAllPoliciesInCategory.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/purgeAllPoliciesInCategory.bash)
 ==================
 
 Casper Admins are sometimes known to be pack rats.  We disable policies but keep them 
