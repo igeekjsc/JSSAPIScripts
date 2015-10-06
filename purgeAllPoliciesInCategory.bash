@@ -60,18 +60,12 @@ cat /private/tmp/jssPolicyListFormatted.xml | grep "<name>" | awk -F '<name>|</n
 echo -e "\nAre you absolutely certain you want to delete these $numberOfPoliciesInCategory policies ?\n"
 read -p "Yes or No (y or n) : " confirmationChoice
 
-if [ $confirmationChoice == "y" ]
-	then echo "Proceeding..."
-elif [ $confirmationChoice == "Y" ]
-	then echo "Proceeding..."
-elif [ $confirmationChoice == "yes" ]
-	then echo "Proceeding..."
-elif [ $confirmationChoice == "Yes" ]
-	then echo "Proceeding..."
-elif [ $confirmationChoice == "YES" ]
-	then echo "Proceeding..."
-else echo "OK.  Aborting now..." ; exit 1
-fi
+case $confirmationChoice in
+   Y|y|Yes|YES|yes)
+     echo "Proceeding" ;;
+   *)
+     echo "OK.  Aborting now..." ; exit 1 ;;
+esac
 
 #Create plain file of policy ID's
 echo "Generating a plain txt file of policy ID's..."

@@ -484,20 +484,23 @@ clear
 echo -e "\n\nYou have chosen to specify XML files to upload to a given resource."
 echo -e "WARNING: No error control for this function."
 echo -e "WARNING: Please only continue with this function if you know exactly what you are doing.\n\n"
-read -p "API Resource (by name) : " jssResource 
+read -p "API Resource (by name) : " jssResourceManualInput 
 read -p "Source directory containing XML files : " resultOutputDirectory
 echo -e "\nAre you updating existing records (PUT) or creating new records (POST)?"
 read -p "Enter \"1\" for POST or \"2\" for PUT : " actionChoice
-until (( $actionChoice == 1 )) || (( $actionChoice == 2 ))
+validChoice=999
+until (( $validChoice == 1 ))
 	do
 		if (( $actionChoice == 1 ))
 			then 
 				echo "Proceeding to POST xml files..."
 				curlAction="POST"
+				validChoice=1
 		elif (( $actionChoice == 2 ))
 			then 
 				echo "Proceeding to PUT xml files..."
 				curlAction="PUT"
+				validChoice=1
 		else
 			echo "Please enter a valid selection"
 			read -p "Enter 1 for POST or 2 for PUT : " actionChoice
@@ -505,14 +508,19 @@ until (( $actionChoice == 1 )) || (( $actionChoice == 2 ))
 	done
 echo -e "\n\n"
 
-for manualPost in $(ls $resultOutputDirectory)  
+totalParsedResourceXML=$(ls "$resultOutputDirectory"/$manualPost | wc -l | sed -e 's/^[ \t]*//')
+postInt=0			
+		
+for manualPost in $(ls "$resultOutputDirectory")  
 	do 
-		xmlPost=`cat $resultOutputDirectory/$manualPost`
-		echo $xmlPost
-		echo -e "\nUploading $manualPost\n"
-		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X $curlAction -d "$xmlPost"
+		xmlPost=`cat "$resultOutputDirectory"/$manualPost`
+		let "postInt = $postInt + 1"
 		echo -e "\n----------\n----------"
-	done
+		echo -e "\nPosting $manualPost( $postInt out of $totalParsedResourceXML ) \n"
+		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X "$curlAction" -d "$xmlPost"
+		
+	done 
+	
 echo -e "\nExit or return to main menu?"
 read -p "( \"x\" or \"m\" ) " exitChoice
 if [ $exitChoice = "x" ]
