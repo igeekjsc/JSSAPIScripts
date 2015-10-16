@@ -199,12 +199,12 @@ if [ $jssResource = "accounts" ]
 	then
 		echo "For accounts resource - we need two separate lists"
 		echo "Creating plain list of user ID's..."
-		cat $formattedList | sed '/<site>/,/<\/site>/d' | sed '/<groups>/,/<\/groups>/d' | grep "<id>" | awk -F '<id>|</id>' '{print $2}' > $plainListAccountsUsers
+		cat $formattedList | sed '/<site>/,/<\/site>/d' | sed '/<groups>/,/<\/groups>/d' | awk -F '<id>|</id>' '/<id>/ {print $2}' > $plainListAccountsUsers
 		echo "Creating plain list of group ID's..."
-		cat $formattedList | sed '/<site>/,/<\/site>/d'| sed '/<users>/,/<\/users>/d' | grep "<id>" | awk -F '<id>|</id>' '{print $2}' > $plainListAccountsGroups
+		cat $formattedList | sed '/<site>/,/<\/site>/d'| sed '/<users>/,/<\/users>/d' | awk -F '<id>|</id>' '/<id>/ {print $2}' > $plainListAccountsGroups
 	else
 		echo -e "\n\nCreating a plain list of $jssResource ID's \n"
-		cat $formattedList | grep "<id>" | awk -F'<id>|</id>' '{print $2}' > $plainList
+		cat $formattedList |awk -F'<id>|</id>' '/<id>/ {print $2}' > $plainList
 fi
 echo -e "\n\n\n"
 sleep 3
