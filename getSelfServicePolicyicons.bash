@@ -147,6 +147,9 @@ for policyID in $(cat $plainList)
 
 renameFilesBySize ()
 {
+/usr/bin/mdls $iconsDirectory/* > /dev/null
+echo "Pausing to let Spotlight warm up..."
+sleep 5
 for iconFile in $(ls $iconsDirectory)
 	do
 		iconWidth=`/usr/bin/mdls -name kMDItemPixelWidth $iconsDirectory/$iconFile | awk -F "=" '{print $2}' | sed -e 's/^[ \t]*//'`
@@ -164,11 +167,11 @@ read -p "Please enter your JSS API account name for $jssSourceURL :	" jssSourceU
 read -p "Please enter your JSS API password for $jssSourceURL :	" -s jssSourcePassword
 echo -e "\n"
 getInitialXML
-sleep 5
+sleep 2
 initializeIconsDirectory
-sleep 5
+sleep 2
 initializeOutputs
-sleep 5
+sleep 2
 getEachPolicyAsXML
 
 echo -e "\n========================================\n========================================\n"
