@@ -22,6 +22,8 @@ Version 1.1
 The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
 upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
 
+This utilty was [presented at the 2015 JAMF Nation User Conference](https://www.youtube.com/watch?v=McKwn76TjZ4).  The video demo begins at approximately the 12 minute mark.
+
 The primary goal and use-case for this utiltiy is to provide a mechanism where a JAMF 
 admin can set up a barebones, clean JSS and import management resources (categories, 
 scripts, extension attributes, computer groups, etc.) from another JSS instance.  This is 
