@@ -23,6 +23,7 @@ localOutputDirectory="$HOME/Desktop/JSS_Migration"
 ########################################################################
 ########################################################################
 
+
 # Setting IFS Env to only use new lines as field seperator 
 IFS=$'\n' 
 
@@ -602,12 +603,13 @@ Which JSS resource would you like to migrate?
 	12 = Scripts
 	13 = Netboot Servers
 	14 = Distribution Points
-	15 = Network Segments
-	16 = Computer Groups
-	17 = OS X Configuration Profiles
-	18 = Restricted Software
-	19 = Packages
-	20 = Policies
+	15 = SUS Servers
+	16 = Network Segments
+	17 = Computer Groups
+	18 = OS X Configuration Profiles
+	19 = Restricted Software
+	20 = Packages
+	21 = Policies
 	
 	99 = Upload XML files from a specified directory to a specified resource
    		 (Useful if you have hand-edited XML files you need to upload)
@@ -686,24 +688,28 @@ until (( $validChoice == 1 ))
 		elif (( $resourceNumber == 15 ))
 			then 
 				validChoice=1
-				jssResource="networksegments"
+				jssResource="softwareupdateservers"
 		elif (( $resourceNumber == 16 ))
 			then 
 				validChoice=1
-				jssResource="computergroups"
+				jssResource="networksegments"
 		elif (( $resourceNumber == 17 ))
 			then 
 				validChoice=1
-				jssResource="osxconfigurationprofiles"
+				jssResource="computergroups"
 		elif (( $resourceNumber == 18 ))
 			then 
 				validChoice=1
-				jssResource="restrictedsoftware"
+				jssResource="osxconfigurationprofiles"
 		elif (( $resourceNumber == 19 ))
 			then 
 				validChoice=1
-				jssResource="packages"
+				jssResource="restrictedsoftware"
 		elif (( $resourceNumber == 20 ))
+			then 
+				validChoice=1
+				jssResource="packages"
+		elif (( $resourceNumber == 21 ))
 			then 
 				validChoice=1
 				jssResource="policies"
