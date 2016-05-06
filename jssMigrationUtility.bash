@@ -279,6 +279,22 @@ elif [ $jssResource = "computergroups" ]
 						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/smart_group_parsed_"$resourceXML"
 				fi					
 			done							
+elif [ $jssResource = "advancedcomputersearches" ]
+	then
+		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+			do
+				echo "Parsing $resourceXML "				
+				echo "$resourceXML is an Advanced Computer Search..."
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/advanced_computer_search_parsed_"$resourceXML"					
+			done
+elif [ $jssResource = "advancedmobiledevicesearches" ]
+	then
+		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+			do
+				echo "Parsing $resourceXML "				
+				echo "$resourceXML is an Advanced Mobile Device Search..."
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/advanced_mobile_device_search_parsed_"$resourceXML"					
+			done
 elif [ $jssResource = "distributionpoints" ]
 	then
 		echo -e "\n**********\n\nVery Important Info regarding Distribution Points -- "
@@ -463,6 +479,30 @@ elif [ $jssResource = "computergroups" ]
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
 	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
 		done
+elif [ $jssResource = "advancedcomputersearches" ]
+	then 
+		totalParsedResourceXML_advancedComputerSearches=$(ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/advanced_computer_search_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		postInt_smart=0	
+		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/advanced_computer_search_parsed*)
+		do
+			xmlPost_smart=`cat $parsedXML_smart`
+			let "postInt_smart = $postInt_smart + 1"
+			echo -e "\n----------\n----------"
+			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedComputerSearches ) \n"
+	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
+		done
+elif [ $jssResource = "advancedmobiledevicesearches" ]
+	then 
+		totalParsedResourceXML_advancedMobileDeviceSearches=$(ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/advanced_mobile_device_search_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		postInt_smart=0	
+		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/advanced_mobile_device_search_parsed*)
+		do
+			xmlPost_smart=`cat $parsedXML_smart`
+			let "postInt_smart = $postInt_smart + 1"
+			echo -e "\n----------\n----------"
+			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedMobileDeviceSearches ) \n"
+	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
+		done
 else
 	totalParsedResourceXML=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml | wc -l | sed -e 's/^[ \t]*//')
 	postInt=0	
@@ -610,6 +650,8 @@ Which JSS resource would you like to migrate?
 	19 = Restricted Software
 	20 = Packages
 	21 = Policies
+	22 = Advanced Computer Searches
+	23 = Advanced Mobile Device Searches
 	
 	99 = Upload XML files from a specified directory to a specified resource
    		 (Useful if you have hand-edited XML files you need to upload)
@@ -713,6 +755,14 @@ until (( $validChoice == 1 ))
 			then 
 				validChoice=1
 				jssResource="policies"
+		elif (( $resourceNumber == 22 ))
+			then 
+				validChoice=1
+				jssResource="advancedcomputersearches"
+		elif (( $resourceNumber == 23 ))
+			then 
+				validChoice=1
+				jssResource="advancedmobiledevicesearches"
 		elif (( $resourceNumber == 99 ))
 			then
 				validChoice=1
