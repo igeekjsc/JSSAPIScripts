@@ -122,7 +122,7 @@ if [ $authCheckChoice = "y" ]
 		echo "It will be named \"zzzz_Migration_Test_\", with a timestamp suffix"
 		echo "Delete later if you wish"
 		echo -e "\nAttempting post now...\n"
-		curl -k "$destinationJSS"JSSResource/categories --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "<category><name>zzzz_Migration_Test_`date +%Y%m%d%H%M%S`</name><priority>20</priority></category>" > "$localOutputDirectory"/authentication_check/postCheck.xml
+		curl -k "$destinationJSS"JSSResource/categories --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "<category><name>zzzz_Migration_Test_`date +%Y%m%d%H%M%S`</name><priority>20</priority></category>" > "$localOutputDirectory"/authentication_check/postCheck.xml
 		curlStatus=$?
 		if (( $curlStatus == 0 ))
 			then
@@ -219,7 +219,7 @@ if [ $jssResource = "accounts" ]
 		for userID in $(cat $plainListAccountsUsers)
 			do
 				echo "Downloading User ID number $userID ( $resultInt out of $totalFetchedIDsUsers )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Content-Type: application/xml" -X GET  "$sourceJSS"JSSResource/accounts/userid/$userID  | xmllint --format - >> $fetchedResultAccountsUsers
+				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/userid/$userID  | xmllint --format - >> $fetchedResultAccountsUsers
 				let "resultInt = $resultInt + 1"
 				fetchedResultAccountsUsers="$localOutputDirectory"/"$jssResource"/fetched_xml/userResult"$resultInt".xml
 			done
@@ -228,7 +228,7 @@ if [ $jssResource = "accounts" ]
 		for groupID in $(cat $plainListAccountsGroups)
 			do
 				echo "Downloading Group ID number $groupID ( $resultInt out of $totalFetchedIDsGroups )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Content-Type: application/xml" -X GET  "$sourceJSS"JSSResource/accounts/groupid/$groupID  | xmllint --format - >> $fetchedResultAccountsGroups
+				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/groupid/$groupID  | xmllint --format - >> $fetchedResultAccountsGroups
 				let "resultInt = $resultInt + 1"
 				fetchedResultAccountsGroups="$localOutputDirectory"/"$jssResource"/fetched_xml/groupResult"$resultInt".xml
 			done
@@ -237,7 +237,7 @@ if [ $jssResource = "accounts" ]
 		for apiID in $(cat $plainList)
 			do
 				echo "Downloading ID number $apiID ( $resultInt out of $totalFetchedIDs )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Content-Type: application/xml" -X GET  "$sourceJSS"JSSResource/$jssResource/id/$apiID  | xmllint --format - >> $fetchedResult
+				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/$jssResource/id/$apiID  | xmllint --format - >> $fetchedResult
 				let "resultInt = $resultInt + 1"
 				fetchedResult="$localOutputDirectory"/"$jssResource"/fetched_xml/result"$resultInt".xml
 			done
@@ -438,7 +438,7 @@ if [ $jssResource = "accounts" ]
 			let "postInt_user = $postInt_user + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_user ( $postInt_user out of $totalParsedResourceXML_user ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/userid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_user"
+	 		curl -k "$destinationJSS"JSSResource/accounts/userid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_user"
 		done
 		echo -e "\n\n----------\nPosting groups...\n"
 		sleep 1
@@ -450,7 +450,7 @@ if [ $jssResource = "accounts" ]
 			let "postInt_group = $postInt_group + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_group ( $postInt_group out of $totalParsedResourceXML_group ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/groupid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_group"
+	 		curl -k "$destinationJSS"JSSResource/accounts/groupid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_group"
 		done		
 elif [ $jssResource = "computergroups" ]
 	then 
@@ -465,7 +465,7 @@ elif [ $jssResource = "computergroups" ]
 			let "postInt_static = $postInt_static + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_static ( $postInt_static out of $totalParsedResourceXML_staticGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_static"
+	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_static"
 		done
 		echo -e "\n\n----------\nPosting smart computer groups...\n"
 		sleep 1
@@ -477,7 +477,7 @@ elif [ $jssResource = "computergroups" ]
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedcomputersearches" ]
 	then 
@@ -489,7 +489,7 @@ elif [ $jssResource = "advancedcomputersearches" ]
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedComputerSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedmobiledevicesearches" ]
 	then 
@@ -501,7 +501,7 @@ elif [ $jssResource = "advancedmobiledevicesearches" ]
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedMobileDeviceSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 else
 	totalParsedResourceXML=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml | wc -l | sed -e 's/^[ \t]*//')
@@ -512,7 +512,7 @@ else
 			let "postInt = $postInt + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML ( $postInt out of $totalParsedResourceXML ) \n"
-	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X POST -d "$xmlPost"
+	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost"
 		done
 fi
 echo -e "\n\n**********\nPosting complete for $jssResource \n**********\n\n"
@@ -558,7 +558,7 @@ for manualPost in $(ls "$resultOutputDirectory")
 		let "postInt = $postInt + 1"
 		echo -e "\n----------\n----------"
 		echo -e "\nPosting $manualPost( $postInt out of $totalParsedResourceXML ) \n"
-		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: application/xml" -X "$curlAction" -d "$xmlPost"
+		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X "$curlAction" -d "$xmlPost"
 		
 	done 
 	
