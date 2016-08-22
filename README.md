@@ -6,6 +6,7 @@ Table of Contents
 =================
 
   * [Table of Contents](#table-of-contents)
+  * [What's New](#whats-new)
   * [jssMigrationUtility\.bash](#jssmigrationutilitybash)
   * [getSelfServicePolicyIcons\.bash](#getselfservicepolicyiconsbash)
   * [generateStaticGroupMembershipList\.bash](#generatestaticgroupmembershiplistbash)
@@ -13,11 +14,24 @@ Table of Contents
   * [purgeAllPoliciesInCategory\.bash](#purgeallpoliciesincategorybash)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
-  
+
+[What's New]
+==================
+
+JSS Migration Utility Version 1.2 Released 8/22/2016
+
+1. Added sites!
+2. Several dialogues are now more forgiving.  For example, an operator may now type “yes” instead of “y” and still get desired results.  (Changed several “if” conditions to “case” conditions)
+3. After spot-checking parsed XML for each resource, if operator does not wish to continue, program returns to main menu instead of exiting.
+4. Fixed a bug in manual upload function where main menu would display twice.
+5. Improved wording in some dialogs, and more informative comments.
+6. When working with the policies resource, operator is given an option to omit users and group based limitations.  Previously, these were omitted by default.  Credit Lotusshaney.  He actually created a branch where there were two separate options on main menu for policies.  One that included user and group based limitations and one that did not.  I simply took his idea and added an extra dialogue in the main policies function.
+
+
 [jssMigrationUtility.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/jssMigrationUtility.bash)
 ==================
 
-Version 1.1
+Version 1.2
 
 The JSS Migration Utility uses the JAMF API to download resources from a source JSS and 
 upload those resources to a destination JSS.  The utiltiy does NOT migrate computers.  
