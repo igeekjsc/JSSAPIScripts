@@ -1,16 +1,28 @@
 #!/bin/bash
 
+# JSS Migration Utility
+# Version 1.2
+
 ########################################################################
 ########################################################################
 ######## Please edit information below to suit your migration ##########
 ########################################################################
 ########################################################################
 
-# JSS URL's - you MUST include the "https://" prefix AND the ":port/" suffix !
-# Use examples below as guidance
+# About JSS URL Variables
+# You MUST include the "https://" prefix AND the ":port/" suffix (where applicable)
 
-sourceJSS="https://pretendjss01.fakedomain.whatever:8443/"
-destinationJSS="https://pretendjss02.fakedomain.whatever:8443/"
+# For example, if your JSS address is "jss.mycompany.com"
+# and it runs on port 8443, the URL should be
+# "https://jss.mycompany.com:8443/"
+
+# If the same JSS runs on port 443,
+# the URL should be "https://jss.mycompany.com/"
+
+# Edit variables below to suit your environment
+
+sourceJSS="https://jss01.mycompany.com:8443/"
+destinationJSS="https://jss02.mycompany.com:8443/"
 
 # Output directory - please choose a directory that you have write access to
 # Default is Desktop - "JSS_Migration" 
@@ -93,8 +105,8 @@ echo -e "\n*****\nEverything looks good with your working directory\n*****\n"
 echo "Would you like to run a quick authentication check?"
 echo "This will entail creating a mock category in destination JSS"
 read -p "( \"y\" or \"n\" ) " authCheckChoice
-if [ $authCheckChoice = "y" ]
-	then	
+case $authCheckChoice in
+	[yY] | [Yy][Ee][Ss])
 		echo "Proceeding to test your credentials.  Downloading categories resource..."
 		curl -k "$sourceJSS"JSSResource/categories --user "$sourceJSSuser:$sourceJSSpw" > "$localOutputDirectory"/authentication_check/raw.xml
 		curlStatus=$?
@@ -134,7 +146,6 @@ if [ $authCheckChoice = "y" ]
 				echo -e "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nCURL ERROR - TERMINATING\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
 				exit 1
 		fi
-
 		if [[ `cat "$localOutputDirectory"/authentication_check/postCheck.xml | grep "The request requires user authentication"` ]]
 			then 
 				echo -e "\nThere is a problem with your credentials for $destinationJSS\n"
@@ -144,13 +155,17 @@ if [ $authCheckChoice = "y" ]
 		fi
 		echo "Are you ready to proceed?"
 		read -p "( \"y\" or \"n\" ) : " proceedChoice
-		if [ $proceedChoice = "n" ]
-			then
+		case $proceedChoice in
+			[nN] | [Nn][Oo])
 				echo "Aborting..."
 				exit 1
-			else clear
-		fi
-fi
+				;;
+			*)
+				clear
+				;;
+		esac	
+	;;	
+esac
 }
 
 initializeDirectoriesPerResource ()
@@ -262,7 +277,7 @@ if [ $jssResource = "accounts" ]
 elif [ $jssResource = "computergroups" ]
 	then
 		echo -e "\n**********\n\nVery Important Info regarding Computer Groups -- "
-		echo -e "\n\n1.Smart Computer Groups will only contain logic.  Will not contain members"
+		echo -e "\n\n1. Smart Computer Groups will only contain logic.  Will not contain members"
 		echo "2. Static Computer groups will only contain name and site membership."
 		echo "3. Unfortunately, you will need to add computers back to Static groups after computers enroll in new jSS"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
@@ -382,19 +397,39 @@ elif [ $jssResource = "policies" ]
 		echo "2. The following items will not be migrated "
 		echo "	a. Individual computers as a scope, exclusion, etc."
 		echo "	b. Self Service icons"
-		echo "	c. Limitations by Users and User Groups"
 		echo -e "\nThese items must be added manually via web app\n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
-			do
-				echo "Parsing $resourceXML "
-				if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>"` ]]
-					then
-						echo "Policy $resourceXML is not assigned to a category.  Ignoring..."
-					else
-						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' | sed '/<limit_to_users>/,/<\/limit_to_users>/d' | sed '/<users>/,/<\/users>/d' | sed '/<user_groups>/,/<\/user_groups>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
-				fi
-			done
+		echo -e "\n"
+		echo "In some environments, posting policies with other limitations and exclusions"
+		echo "(.e.g. LDAP Users and Groups) causes errors when posting."
+		echo -e "\nWould you like to omit user and group limitations from your policies and add manually later?"
+		read -p "( \"y\" or \"n\" ) " omitLimitationsChoice
+		case $omitLimitationsChoice in
+			[yY] | [Yy][Ee][Ss])
+				for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+					do
+						echo "Parsing $resourceXML "
+						if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>"` ]]
+							then
+								echo "Policy $resourceXML is not assigned to a category.  Ignoring..."
+							else
+								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' | sed '/<limit_to_users>/,/<\/limit_to_users>/d' | sed '/<users>/,/<\/users>/d' | sed '/<user_groups>/,/<\/user_groups>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+						fi
+					done
+				;;
+			*)
+				for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+					do
+						echo "Parsing $resourceXML "
+						if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>"` ]]
+							then
+								echo "Policy $resourceXML is not assigned to a category.  Ignoring..."
+							else
+								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+						fi
+					done
+				;;
+		esac
 else
 	echo "For $jssResource - no need for extra special parsing.  Simply removing references to ID's"
 	sleep 2
@@ -409,22 +444,33 @@ fi
 pauseForManualCheck ()
 {
 echo -e "\n----------------------------------------\nYou may wish to spot-check parsed XML \nin "$localOutputDirectory"/"$jssResource"/parsed_xml \n----------------------------------------"
-echo -e "If you do not enter \"y\" - you will exit this utility!\nIt is safe to just leave the utility in this state while you spot-check parsed XML.\n"
+echo -e "If you enter \"n\" - you will return to the main menu\nIt is safe to just leave the utility in this state while you spot-check parsed XML.\n"
 read -p "Continue now ? (y or n) : " continueResponse
-if [ ! $continueResponse = "y" ]
-	then 
-		echo -e "\nOK.  Will now exit script now. \nIf you need to make further edits to parsed XML - you can take \nthe time to do that now, and use the manual upload option \nnext time you run this tool.\n\n\n"
-		exit 0
-	else	
+
+case $continueResponse in
+	[nN] | [Nn][Oo])
+		jssResource="null"
+		;;
+	*)
 		echo -e "Continuing...\n\n"
-		sleep 2
-fi
+		sleep 1
+		;;
+esac
 }
 
 postResource ()
 {
-echo -e "\n\nTime to finally post $jssResource to destination JSS...\n\n"
-sleep 1
+if [ $jssResource = "null" ]
+	then
+		# We are not doing anything here.  
+		# This is just a placeholder in case someone wants to return to main menu 
+		# during pauseForManualCheck function
+		# instead of proceeding with post
+		echo "Nothing to see here" > /dev/null 
+	else
+		echo -e "\n\nTime to post $jssResource to destination JSS...\n\n"
+		sleep 1
+fi
 if [ $jssResource = "accounts" ]
 	then
 		echo "For accounts, we need to post users first, then groups..."
@@ -515,8 +561,11 @@ else
 	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost"
 		done
 fi
-echo -e "\n\n**********\nPosting complete for $jssResource \n**********\n\n"
-read -p "Press RETURN to continue." returnKey
+if [ $jssResource != "null" ]
+	then
+		echo -e "\n\n**********\nPosting complete for $jssResource \n**********\n\n"
+		read -p "Press RETURN to continue." returnKey
+fi
 }
 
 manualUpload ()
@@ -527,7 +576,7 @@ echo -e "WARNING: No error control for this function."
 echo -e "WARNING: Please only continue with this function if you know exactly what you are doing.\n\n"
 read -p "API Resource (by name) : " jssResourceManualInput 
 read -p "Source directory containing XML files : " resultOutputDirectory
-echo -e "\nAre you updating existing records (PUT) or creating new records (POST)?"
+echo -e "\nAre you creating new records (POST) or updating existing records (PUT)?"
 read -p "Enter \"1\" for POST or \"2\" for PUT : " actionChoice
 validChoice=999
 until (( $validChoice == 1 ))
@@ -564,10 +613,12 @@ for manualPost in $(ls "$resultOutputDirectory")
 	
 echo -e "\nExit or return to main menu?"
 read -p "( \"x\" or \"m\" ) " exitChoice
-if [ $exitChoice = "x" ]
-	then echo -e "\nExiting..." ; exit 0
-	else getMainMenuSelection
-fi
+case $exitChoice in
+	[xX] | [Ee][Xx][Ii][Tt])
+		echo -e "\nExiting..."
+		exit 0
+		;;
+esac
 }
 
 exitDialog ()
@@ -629,29 +680,30 @@ Which JSS resource would you like to migrate?
 
 (WARNING - We strongly encourage you to proceed in order)
 
-	 1 = Categories
-	 2 = LDAP Servers
-	 3 = Accounts (JSS Admin Accounts and Groups)
-	 4 = Buildings
-	 5 = Departments
-	 6 = Extension Attributes (for computers)
-	 7 = Directory Bindings
-	 8 = Dock Items
-	 9 = Removable MAC Addresses
-	10 = Printers
-	11 = Licensed Software
-	12 = Scripts
-	13 = Netboot Servers
-	14 = Distribution Points
-	15 = SUS Servers
-	16 = Network Segments
-	17 = Computer Groups
-	18 = OS X Configuration Profiles
-	19 = Restricted Software
-	20 = Packages
-	21 = Policies
-	22 = Advanced Computer Searches
-	23 = Advanced Mobile Device Searches
+	 1 = Sites
+	 2 = Categories
+	 3 = LDAP Servers
+	 4 = Accounts (JSS Admin Accounts and Groups)
+	 5 = Buildings
+	 6 = Departments
+	 7 = Extension Attributes (for computers)
+	 8 = Directory Bindings
+	 9 = Dock Items
+	10 = Removable MAC Addresses
+	11 = Printers
+	12 = Licensed Software
+	13 = Scripts
+	14 = Netboot Servers
+	15 = Distribution Points
+	16 = SUS Servers
+	17 = Network Segments
+	18 = Computer Groups
+	19 = OS X Configuration Profiles
+	20 = Restricted Software
+	21 = Packages
+	22 = Policies
+	23 = Advanced Computer Searches
+	24 = Advanced Mobile Device Searches
 	
 	99 = Upload XML files from a specified directory to a specified resource
    		 (Useful if you have hand-edited XML files you need to upload)
@@ -674,92 +726,96 @@ until (( $validChoice == 1 ))
 		elif (( $resourceNumber == 1 ))
 			then 
 				validChoice=1
-				jssResource="categories"	
+				jssResource="sites"	
 		elif (( $resourceNumber == 2 ))
 			then
 				validChoice=1 
-				jssResource="ldapservers"
+				jssResource="categories"
 		elif (( $resourceNumber == 3 ))
 			then 
 				validChoice=1
-				jssResource="accounts"
+				jssResource="ldapservers"
 		elif (( $resourceNumber == 4 ))
 			then 
 				validChoice=1
-				jssResource="buildings"
+				jssResource="accounts"
 		elif (( $resourceNumber == 5 ))
 			then 
 				validChoice=1
-				jssResource="departments"
+				jssResource="buildings"
 		elif (( $resourceNumber == 6 ))
 			then 
 				validChoice=1
-				jssResource="computerextensionattributes"
+				jssResource="departments"
 		elif (( $resourceNumber == 7 ))
 			then 
 				validChoice=1
-				jssResource="directorybindings"
+				jssResource="computerextensionattributes"
 		elif (( $resourceNumber == 8 ))
 			then 
 				validChoice=1
-				jssResource="dockitems"
+				jssResource="directorybindings"
 		elif (( $resourceNumber == 9 ))
 			then 
 				validChoice=1
-				jssResource="removablemacaddresses"
+				jssResource="dockitems"
 		elif (( $resourceNumber == 10 ))
 			then 
 				validChoice=1
-				jssResource="printers"
+				jssResource="removablemacaddresses"
 		elif (( $resourceNumber == 11 ))
 			then 
 				validChoice=1
-				jssResource="licensedsoftware"
+				jssResource="printers"
 		elif (( $resourceNumber == 12 ))
 			then 
 				validChoice=1
-				jssResource="scripts"
+				jssResource="licensedsoftware"
 		elif (( $resourceNumber == 13 ))
 			then 
 				validChoice=1
-				jssResource="netbootservers"
+				jssResource="scripts"
 		elif (( $resourceNumber == 14 ))
 			then 
 				validChoice=1
-				jssResource="distributionpoints"
+				jssResource="netbootservers"
 		elif (( $resourceNumber == 15 ))
 			then 
 				validChoice=1
-				jssResource="softwareupdateservers"
+				jssResource="distributionpoints"
 		elif (( $resourceNumber == 16 ))
 			then 
 				validChoice=1
-				jssResource="networksegments"
+				jssResource="softwareupdateservers"
 		elif (( $resourceNumber == 17 ))
 			then 
 				validChoice=1
-				jssResource="computergroups"
+				jssResource="networksegments"
 		elif (( $resourceNumber == 18 ))
 			then 
 				validChoice=1
-				jssResource="osxconfigurationprofiles"
+				jssResource="computergroups"
 		elif (( $resourceNumber == 19 ))
 			then 
 				validChoice=1
-				jssResource="restrictedsoftware"
+				jssResource="osxconfigurationprofiles"
 		elif (( $resourceNumber == 20 ))
 			then 
 				validChoice=1
-				jssResource="packages"
+				jssResource="restrictedsoftware"
 		elif (( $resourceNumber == 21 ))
 			then 
 				validChoice=1
-				jssResource="policies"
+				jssResource="packages"
 		elif (( $resourceNumber == 22 ))
 			then 
 				validChoice=1
-				jssResource="advancedcomputersearches"
+				jssResource="policies"
 		elif (( $resourceNumber == 23 ))
+			then 
+				validChoice=1
+				jssResource="advancedcomputersearches"
+		elif (( $resourceNumber == 24 ))
 			then 
 				validChoice=1
 				jssResource="advancedmobiledevicesearches"
@@ -785,9 +841,9 @@ until (( $quitLoop == 1 ))
 		getMainMenuSelection
 		if [ "$resourceNumber" = "?" ]
 			then displayHelp
-		elif (( $resourceNumber == 99 ))
+		elif [ $resourceNumber = "99" ]
 			then manualUpload
-		elif (( $resourceNumber == 0 ))
+		elif [ $resourceNumber = "0" ]
 			then
 				quitLoop=1
 				exitDialog
@@ -801,6 +857,5 @@ until (( $quitLoop == 1 ))
 			postResource
 		fi
 	done
-
-
+	
 exit 0
