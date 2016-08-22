@@ -15,7 +15,7 @@ Table of Contents
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
-[What's New]
+[whats-new]
 ==================
 
 JSS Migration Utility Version 1.2 Released 8/22/2016
