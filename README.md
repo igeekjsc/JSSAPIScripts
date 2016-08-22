@@ -15,12 +15,13 @@ Table of Contents
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
-[whats-new]
+What's New
 ==================
 
-JSS Migration Utility Version 1.2 Released 8/22/2016
+8/22/2016
+JSS Migration Utility Version 1.2 Released 
 
-1. Added sites!
+1. Added resource - SITES !
 2. Several dialogues are now more forgiving.  For example, an operator may now type “yes” instead of “y” and still get desired results.  (Changed several “if” conditions to “case” conditions)
 3. After spot-checking parsed XML for each resource, if operator does not wish to continue, program returns to main menu instead of exiting.
 4. Fixed a bug in manual upload function where main menu would display twice.
