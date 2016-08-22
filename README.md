@@ -27,7 +27,7 @@ JSS Migration Utility Version 1.2 Released
 3. After spot-checking parsed XML for each resource, if operator does not wish to continue, program returns to main menu instead of exiting.
 4. Fixed a bug in manual upload function where main menu would display twice.
 5. Improved wording in some dialogs, and more informative comments.
-6. When working with the policies resource, operator is given an option to omit users and group based limitations.  Previously, these were omitted by default.  Credit [Lotusshaney](https://github.com/Lotusshaney).  He actually created a branch where there were two separate options on main menu for policies.  One that included user and group based limitations and one that did not.  I simply took his idea and added an extra dialogue in the main policies function.
+6. When working with the policies resource, operator is given an option to omit users and group based limitations.  Previously, these were omitted by default.  Credit [Lotusshaney](https://github.com/Lotusshaney).  He actually created a branch where there were two separate options on main menu for policies: one that included user and group based limitations and one that did not.  I simply took his idea and added an extra dialogue in the main policies function.
 
 
 [jssMigrationUtility.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/jssMigrationUtility.bash)
