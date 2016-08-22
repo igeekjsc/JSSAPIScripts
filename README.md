@@ -28,6 +28,7 @@ JSS Migration Utility Version 1.2 Released
 4. Fixed a bug in manual upload function where main menu would display twice.
 5. Improved wording in some dialogs, and more informative comments.
 6. When working with the policies resource, operator is given an option to omit users and group based limitations.  Previously, these were omitted by default.  Credit [Lotusshaney](https://github.com/Lotusshaney).  He actually created a branch where there were two separate options on main menu for policies: one that included user and group based limitations and one that did not.  I simply took his idea and added an extra dialogue in the main policies function.
+7. Also includes fixes by [talkingmoose](https://github.com/talkingmoose).  He updated the curl commands several weeks ago to fix random curl errors.
 
 
 [jssMigrationUtility.bash](https://github.com/igeekjsc/JSSAPIScripts/blob/master/jssMigrationUtility.bash)
