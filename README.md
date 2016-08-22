@@ -19,6 +19,7 @@ What's New
 ==================
 
 8/22/2016
+
 JSS Migration Utility Version 1.2 Released 
 
 1. Added resource - SITES !
