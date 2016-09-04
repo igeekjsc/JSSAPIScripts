@@ -480,11 +480,11 @@ if [ $jssResource = "accounts" ]
 		postInt_user=0	
 		for parsedXML_user in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_user*)
 		do
-			xmlPost_user=$parsedXML_user
+			xmlPost_user=`cat $parsedXML_user`
 			let "postInt_user = $postInt_user + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_user ( $postInt_user out of $totalParsedResourceXML_user ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/userid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_user"
+	 		curl -k "$destinationJSS"JSSResource/accounts/userid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_user"
 		done
 		echo -e "\n\n----------\nPosting groups...\n"
 		sleep 1
@@ -492,11 +492,11 @@ if [ $jssResource = "accounts" ]
 		postInt_group=0	
 		for parsedXML_group in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_group*)
 		do
-			xmlPost_group=$parsedXML_group
+			xmlPost_group=`cat $parsedXML_group`
 			let "postInt_group = $postInt_group + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_group ( $postInt_group out of $totalParsedResourceXML_group ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/groupid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_group"
+	 		curl -k "$destinationJSS"JSSResource/accounts/groupid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_group"
 		done		
 elif [ $jssResource = "computergroups" ]
 	then 
@@ -507,11 +507,11 @@ elif [ $jssResource = "computergroups" ]
 		postInt_static=0	
 		for parsedXML_static in $(ls "$localOutputDirectory"/computergroups/parsed_xml/static_group_parsed*)
 		do
-			xmlPost_static=$parsedXML_static
+			xmlPost_static=`cat $parsedXML_static`
 			let "postInt_static = $postInt_static + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_static ( $postInt_static out of $totalParsedResourceXML_staticGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_static"
+	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_static"
 		done
 		echo -e "\n\n----------\nPosting smart computer groups...\n"
 		sleep 1
@@ -519,11 +519,11 @@ elif [ $jssResource = "computergroups" ]
 		postInt_smart=0	
 		for parsedXML_smart in $(ls "$localOutputDirectory"/computergroups/parsed_xml/smart_group_parsed*)
 		do
-			xmlPost_smart=$parsedXML_smart
+			xmlPost_smart=`cat $parsedXML_smart`
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedcomputersearches" ]
 	then 
@@ -531,11 +531,11 @@ elif [ $jssResource = "advancedcomputersearches" ]
 		postInt_smart=0	
 		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/advanced_computer_search_parsed*)
 		do
-			xmlPost_smart=$parsedXML_smart
+			xmlPost_smart=`cat $parsedXML_smart`
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedComputerSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedmobiledevicesearches" ]
 	then 
@@ -543,22 +543,22 @@ elif [ $jssResource = "advancedmobiledevicesearches" ]
 		postInt_smart=0	
 		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/advanced_mobile_device_search_parsed*)
 		do
-			xmlPost_smart=$parsedXML_smart
+			xmlPost_smart=`cat $parsedXML_smart`
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedMobileDeviceSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost_smart"
 		done
 else
 	totalParsedResourceXML=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml | wc -l | sed -e 's/^[ \t]*//')
 	postInt=0	
 	for parsedXML in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml)
 		do
-			xmlPost="$localOutputDirectory"/"$jssResource"/parsed_xml/$parsedXML
+			xmlPost=`cat "$localOutputDirectory"/"$jssResource"/parsed_xml/$parsedXML`
 			let "postInt = $postInt + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML ( $postInt out of $totalParsedResourceXML ) \n"
-	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost"
+	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "$xmlPost"
 		done
 fi
 if [ $jssResource != "null" ]
