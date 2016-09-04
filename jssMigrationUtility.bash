@@ -603,11 +603,11 @@ postInt=0
 		
 for manualPost in $(ls "$resultOutputDirectory")  
 	do 
-		xmlPost=`cat "$resultOutputDirectory"/$manualPost`
+		xmlPost="$resultOutputDirectory"/$manualPost
 		let "postInt = $postInt + 1"
 		echo -e "\n----------\n----------"
 		echo -e "\nPosting $manualPost( $postInt out of $totalParsedResourceXML ) \n"
-		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X "$curlAction" -d "$xmlPost"
+		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X "$curlAction" -T "$xmlPost"
 		
 	done 
 	
