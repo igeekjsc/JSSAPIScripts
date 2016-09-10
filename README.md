@@ -19,7 +19,7 @@ What's New
 ==================
 9/9/2016 - JSS Migration Utility Version 1.21 Released 
 
-More fixes provided by [talkingmoose](https://github.com/talkingmoose)  Huge Thanks!  Fixed issue when posting larger files.
+More fixes provided by [talkingmoose](https://github.com/talkingmoose) and @andyincali. Huge Thanks!  Fixed issue when posting larger files.
 
 8/22/2016 - JSS Migration Utility Version 1.2 Released 
 
