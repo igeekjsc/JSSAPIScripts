@@ -17,10 +17,11 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 What's New
 ==================
+9/9/2016 - JSS Migration Utility Version 1.21 Released 
 
-8/22/2016
+More fixes provided by [talkingmoose](https://github.com/talkingmoose) and @andyincali. Huge Thanks!  Fixed issue when posting larger files.
 
-JSS Migration Utility Version 1.2 Released 
+8/22/2016 - JSS Migration Utility Version 1.2 Released 
 
 1. Added resource - SITES !
 2. Several dialogues are now more forgiving.  For example, an operator may now type “yes” instead of “y” and still get desired results.  (Changed several “if” conditions to “case” conditions)
