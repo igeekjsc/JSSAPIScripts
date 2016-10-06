@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # JSS Migration Utility
-# Version 1.21
+# Version 1.22
 
 ########################################################################
 ########################################################################
@@ -108,7 +108,7 @@ read -p "( \"y\" or \"n\" ) " authCheckChoice
 case $authCheckChoice in
 	[yY] | [Yy][Ee][Ss])
 		echo "Proceeding to test your credentials.  Downloading categories resource..."
-		curl -k "$sourceJSS"JSSResource/categories --user "$sourceJSSuser:$sourceJSSpw" > "$localOutputDirectory"/authentication_check/raw.xml
+		curl -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET "$sourceJSS"JSSResource/categories > "$localOutputDirectory"/authentication_check/raw.xml
 		curlStatus=$?
 		if (( $curlStatus == 0 ))
 			then
@@ -210,7 +210,7 @@ fetchedResultAccountsGroups="$localOutputDirectory"/"$jssResource"/fetched_xml/g
 createIDlist ()
 {
 echo -e "\nFetching XML data for $jssResource ID's"
-curl -k "$sourceJSS"JSSResource/$jssResource --user "$sourceJSSuser:$sourceJSSpw" | xmllint --format - > $formattedList
+curl -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET "$sourceJSS"JSSResource/$jssResource | xmllint --format - > $formattedList
 if [ $jssResource = "accounts" ]
 	then
 		echo "For accounts resource - we need two separate lists"
