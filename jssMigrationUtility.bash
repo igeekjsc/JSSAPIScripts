@@ -210,7 +210,7 @@ fetchedResultAccountsGroups="$localOutputDirectory"/"$jssResource"/fetched_xml/g
 createIDlist ()
 {
 echo -e "\nFetching XML data for $jssResource ID's"
-curl -k "$sourceJSS"JSSResource/$jssResource --user "$sourceJSSuser:$sourceJSSpw" -H "Content-Type: text/xml" | xmllint --format - > $formattedList
+curl -k "$sourceJSS"JSSResource/$jssResource --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" | xmllint --format - > $formattedList
 if [ $jssResource = "accounts" ]
 	then
 		echo "For accounts resource - we need two separate lists"
