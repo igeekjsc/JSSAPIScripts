@@ -336,6 +336,26 @@ elif [ $jssResource = "computergroups" ]
 						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/smart_group_"$resourceXML"
 				fi					
 			done							
+elif [ $jssResource = "mobiledevicegroups" ]
+	then
+		echo -e "\n**********\n\nVery Important Info regarding Mobile Device Groups -- "
+		echo -e "\n\n1. Smart Mobile Device Groups will only contain logic.  Will not contain members"
+		echo "2. Static Mobile Device groups will only contain name and site membership."
+		echo "3. Unfortunately, you will need to add Mobile Devices back to Static groups after Mobile Devices enroll in new jSS"
+		read -p "Press RETURN key to acknowledge this message " returnChoice
+		echo -e "\nParsing computer groups to EXCLUDE Mobile Devices in both static and smart groups..."
+		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+			do
+				echo "Parsing $resourceXML "				
+				if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<is_smart>false</is_smart>"` ]]
+					then
+						echo "$resourceXML is a STATIC mobile device group..."
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/static_group_parsed_"$resourceXML"
+					else
+						echo "$resourceXML is a SMART mobile device group..."
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/smart_group_parsed_"$resourceXML"
+				fi					
+			done							
 elif [ $jssResource = "advancedcomputersearches" ]
 	then
 		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
@@ -415,6 +435,29 @@ elif [ $jssResource = "osxconfigurationprofiles" ]
 				echo "Parsing $resourceXML "
 				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
+elif [ $jssResource = "mobiledeviceconfigurationprofiles" ]
+	then
+		echo -e "\n**********\n\nImportant note regarding Mobile Device Configuration Profiles -- "
+		echo -e "\nIt is critical that mobile device groups are migrated first!"
+		echo "Data regarding which mobile devices have profiles will be stripped."
+		echo -e "This data will come back as mobile devices enroll in destination JSS\n\n**********\n\n"
+		read -p "Press RETURN key to acknowledge this message " returnChoice
+		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+			do
+				echo "Parsing $resourceXML "
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+			done	
+elif [ $jssResource = "mobiledeviceenrollmentprofiles" ]
+	then
+		echo -e "\n**********\n\nImportant note regarding Mobile Device Enrollment Profiles -- "
+		echo -e "\nEnrollment Invitations will not be included"
+		read -p "Press RETURN key to acknowledge this message " returnChoice
+		echo -e "\nParsing Invitation IDs..."
+		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+			do
+				echo "Parsing $resourceXML "
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | grep -v "<invitation>" | grep -v "<uuid>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+			done			
 elif [ $jssResource = "restrictedsoftware" ]
 	then
 		echo -e "\n**********\n\nImportant note regarding Restricted Software -- "
@@ -565,6 +608,33 @@ elif [ $jssResource = "computergroups" ]
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
 	 		curl -k -g "$destinationJSS"JSSResource/computergroups/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
 		done
+elif [ $jssResource = "mobiledevicegroups" ]
+	then 
+		echo "For mobile devices, we need to post static groups before smart groups,"
+		echo "because smart groups can contain static groups"
+		echo -e "\n\n----------\nPosting static mobile devices groups...\n"
+		totalParsedResourceXML_staticGroups=$(ls "$localOutputDirectory"/mobiledevicegroups/parsed_xml/static_group_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		postInt_static=0	
+		for parsedXML_static in $(ls "$localOutputDirectory"/mobiledevicegroups/parsed_xml/static_group_parsed*)
+		do
+			xmlPost_static=$parsedXML_static
+			let "postInt_static = $postInt_static + 1"
+			echo -e "\n----------\n----------"
+			echo -e "\nPosting $parsedXML_static ( $postInt_static out of $totalParsedResourceXML_staticGroups ) \n"
+	 		curl -k "$destinationJSS"JSSResource/mobiledevicegroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_static"
+		done
+		echo -e "\n\n----------\nPosting smart mobile devices groups...\n"
+		sleep 1
+		totalParsedResourceXML_smartGroups=$(ls "$localOutputDirectory"/mobiledevicegroups/parsed_xml/smart_group_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		postInt_smart=0	
+		for parsedXML_smart in $(ls "$localOutputDirectory"/mobiledevicegroups/parsed_xml/smart_group_parsed*)
+		do
+			xmlPost_smart=$parsedXML_smart
+			let "postInt_smart = $postInt_smart + 1"
+			echo -e "\n----------\n----------"
+			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
+	 		curl -k "$destinationJSS"JSSResource/mobiledevicegroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+		done		
 elif [ $jssResource = "advancedcomputersearches" ]
 	then 
 		totalParsedResourceXML_advancedComputerSearches=$( ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/* | wc -l | sed -e 's/^[ \t]*//' )
@@ -744,6 +814,9 @@ Which JSS resource would you like to migrate?
 	22 = Policies
 	23 = Advanced Computer Searches
 	24 = Advanced Mobile Device Searches
+	25 = Mobile Device Groups
+	26 = Mobile Device Configuration Profiles
+	27 = Mobile Device Enrollment Profiles
 	
 	99 = Upload XML files from a specified directory to a specified resource
    		 (Useful if you have hand-edited XML files you need to upload)
@@ -859,6 +932,18 @@ until (( $validChoice == 1 ))
 			then 
 				validChoice=1
 				jssResource="advancedmobiledevicesearches"
+		elif (( $resourceNumber == 25 ))
+			then 
+				validChoice=1
+				jssResource="mobiledevicegroups"
+		elif (( $resourceNumber == 26 ))
+			then 
+				validChoice=1
+				jssResource="mobiledeviceconfigurationprofiles"		
+		elif (( $resourceNumber == 27 ))
+			then 
+				validChoice=1
+				jssResource="mobiledeviceenrollmentprofiles"			
 		elif (( $resourceNumber == 99 ))
 			then
 				validChoice=1
