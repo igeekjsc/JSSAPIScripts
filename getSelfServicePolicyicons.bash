@@ -40,7 +40,7 @@ getInitialXML ()
 {
 #Generate raw xml file
 echo -e "\nGetting raw xml data from JSS for policies..."
-curl -k "$jssSourceURL"JSSResource/policies --user "$jssSourceUser:$jssSourcePassword" > $rawXML
+curl -k "$jssSourceURL"JSSResource/policies -H "Accept: application/xml" --user "$jssSourceUser:$jssSourcePassword" > $rawXML
 
 #Authentication check
 if [[ `cat $rawXML | head -15 | grep "The request requires user authentication"` ]]
@@ -132,7 +132,7 @@ getEachPolicyAsXML ()
 for policyID in $(cat $plainList)
 	do
 		echo -e "\n********************\nFetching Policy ID number $policyID"
-		curl --silent -k --user "$jssSourceUser:$jssSourcePassword" -H "Content-Type: application/xml" -X GET "$jssSourceURL"JSSResource/policies/id/$policyID | xmllint --format - >> $resultOutput
+		curl --silent -k --user "$jssSourceUser:$jssSourcePassword" -H "Accept: application/xml" -X GET "$jssSourceURL"JSSResource/policies/id/$policyID | xmllint --format - >> $resultOutput
 		if [[ `cat $resultOutput | grep "<use_for_self_service>false</use_for_self_service>"` ]]
 			then 
  				echo -e "ID $policyID is not a Self Service policy.  Ignoring..."
