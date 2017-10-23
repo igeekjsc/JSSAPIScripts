@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # JSS Migration Utility
-# Version 1.22
+# Version 1.23
 
 ########################################################################
 ########################################################################
@@ -108,7 +108,7 @@ read -p "( \"y\" or \"n\" ) " authCheckChoice
 case $authCheckChoice in
 	[yY] | [Yy][Ee][Ss])
 		echo "Proceeding to test your credentials.  Downloading categories resource..."
-		curl -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET "$sourceJSS"JSSResource/categories > "$localOutputDirectory"/authentication_check/raw.xml
+		curl -k "$sourceJSS"JSSResource/categories --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" > "$localOutputDirectory"/authentication_check/raw.xml
 		curlStatus=$?
 		if (( $curlStatus == 0 ))
 			then
@@ -122,7 +122,7 @@ case $authCheckChoice in
 		fi
 
 		#Authentication checks
-		if [[ `cat "$localOutputDirectory"/authentication_check/raw.xml | grep "The request requires user authentication"` ]]
+		if [[ $( cat "$localOutputDirectory"/authentication_check/raw.xml | grep "The request requires user authentication" ) ]]
 			then 
 				echo -e "\nThere is a problem with your credentials for $sourceJSS\n"
 				echo -e "\n!!!!!!!!!!!!!!!!!!!!\nAUTHENTICATION ERROR - TERMINATING\n!!!!!!!!!!!!!!!!!!!!\n\n"
@@ -134,7 +134,7 @@ case $authCheckChoice in
 		echo "It will be named \"zzzz_Migration_Test_\", with a timestamp suffix"
 		echo "Delete later if you wish"
 		echo -e "\nAttempting post now...\n"
-		curl -k "$destinationJSS"JSSResource/categories --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "<category><name>zzzz_Migration_Test_`date +%Y%m%d%H%M%S`</name><priority>20</priority></category>" > "$localOutputDirectory"/authentication_check/postCheck.xml
+		curl -k "$destinationJSS"JSSResource/categories/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -d "<category><name>zzzz_Migration_Test_$( date +%Y%m%d%H%M%S )</name><priority>20</priority></category>" > "$localOutputDirectory"/authentication_check/postCheck.xml
 		curlStatus=$?
 		if (( $curlStatus == 0 ))
 			then
@@ -146,7 +146,7 @@ case $authCheckChoice in
 				echo -e "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nCURL ERROR - TERMINATING\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
 				exit 1
 		fi
-		if [[ `cat "$localOutputDirectory"/authentication_check/postCheck.xml | grep "The request requires user authentication"` ]]
+		if [[ $( cat "$localOutputDirectory"/authentication_check/postCheck.xml | grep "The request requires user authentication" ) ]]
 			then 
 				echo -e "\nThere is a problem with your credentials for $destinationJSS\n"
 				echo -e "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\nAUTHENTICATION ERROR - TERMINATING\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
@@ -181,7 +181,7 @@ if [ -d "$localOutputDirectory"/"$jssResource" ]
 					echo "Archive directory does not exist.  Creating..."
 					mkdir "$localOutputDirectory"/archives
 			fi
-		ditto -ck "$localOutputDirectory"/"$jssResource" "$localOutputDirectory"/archives/"$jssResource"-`date +%Y%m%d%H%M%S`.zip
+		ditto -ck "$localOutputDirectory"/"$jssResource" "$localOutputDirectory"/archives/"$jssResource"-$( date +%Y%m%d%H%M%S ).zip
 		echo "Removing previous local directory structure for $jssResource"
 		rm -rf "$localOutputDirectory"/"$jssResource"
 	else
@@ -210,7 +210,7 @@ fetchedResultAccountsGroups="$localOutputDirectory"/"$jssResource"/fetched_xml/g
 createIDlist ()
 {
 echo -e "\nFetching XML data for $jssResource ID's"
-curl -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET "$sourceJSS"JSSResource/$jssResource | xmllint --format - > $formattedList
+curl -k "$sourceJSS"JSSResource/$jssResource --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" | xmllint --format - > $formattedList
 if [ $jssResource = "accounts" ]
 	then
 		echo "For accounts resource - we need two separate lists"
@@ -230,31 +230,73 @@ fetchResourceID ()
 {
 if [ $jssResource = "accounts" ]
 	then
-		totalFetchedIDsUsers=`cat "$plainListAccountsUsers" | wc -l | sed -e 's/^[ \t]*//'`
-		for userID in $(cat $plainListAccountsUsers)
+		totalFetchedIDsUsers=$( cat "$plainListAccountsUsers" | wc -l | sed -e 's/^[ \t]*//' )
+		for userID in $( cat $plainListAccountsUsers )
 			do
 				echo "Downloading User ID number $userID ( $resultInt out of $totalFetchedIDsUsers )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/userid/$userID  | xmllint --format - >> $fetchedResultAccountsUsers
+				fetchedResultAccountsUsers=$( curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/userid/$userID  | xmllint --format - )
 				let "resultInt = $resultInt + 1"
-				fetchedResultAccountsUsers="$localOutputDirectory"/"$jssResource"/fetched_xml/userResult"$resultInt".xml
+				
+				# read the object's JSS ID from the XML
+				itemID=$( echo "$fetchedResultAccountsUsers" | grep "<id>" | awk -F '<id>|</id>' '{ print $2; exit; }')
+				
+				# read the object's JSS name from the XML
+				itemName=$( echo "$fetchedResultAccountsUsers" | grep "<name>" | awk -F '<name>|</name>' '{ print $2; exit; }')
+				
+				# remove any colons, forward slashes and back slashes from the object's name
+				cleanedName=$( echo "$itemName" | sed 's/[:\/\\]//g' )
+				
+				# create a file name using name of the object and its ID
+				fileName="$cleanedName [ID $itemID]"
+				
+				# write the XML to the new file name
+				echo "$fetchedResultAccountsUsers" > "$localOutputDirectory"/"$jssResource"/fetched_xml/user_"$fileName.xml"
 			done
 		resultInt=1
-		totalFetchedIDsGroups=`cat "$plainListAccountsGroups" | wc -l | sed -e 's/^[ \t]*//'`
-		for groupID in $(cat $plainListAccountsGroups)
+		totalFetchedIDsGroups=$( cat "$plainListAccountsGroups" | wc -l | sed -e 's/^[ \t]*//' )
+		for groupID in $( cat $plainListAccountsGroups )
 			do
 				echo "Downloading Group ID number $groupID ( $resultInt out of $totalFetchedIDsGroups )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/groupid/$groupID  | xmllint --format - >> $fetchedResultAccountsGroups
+				fetchedResultAccountsGroups=$( curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/accounts/groupid/$groupID  | xmllint --format - )
 				let "resultInt = $resultInt + 1"
-				fetchedResultAccountsGroups="$localOutputDirectory"/"$jssResource"/fetched_xml/groupResult"$resultInt".xml
+				
+				# read the object's JSS ID from the XML
+				itemID=$( echo "$fetchedResultAccountsGroups" | grep "<id>" | awk -F '<id>|</id>' '{ print $2; exit; }')
+				
+				# read the object's JSS name from the XML
+				itemName=$( echo "$fetchedResultAccountsGroups" | grep "<name>" | awk -F '<name>|</name>' '{ print $2; exit; }')
+				
+				# remove any colons, forward slashes and back slashes from the object's name
+				cleanedName=$( echo "$itemName" | sed 's/[:\/\\]//g' )
+				
+				# create a file name using name of the object and its ID
+				fileName="$cleanedName [ID $itemID]"
+				
+				# write the XML to the new file name
+				echo "$fetchedResultAccountsGroups" > "$localOutputDirectory"/"$jssResource"/fetched_xml/group_"$fileName.xml"
 			done
 	else
-		totalFetchedIDs=`cat "$plainList" | wc -l | sed -e 's/^[ \t]*//'`
-		for apiID in $(cat $plainList)
+		totalFetchedIDs=$( cat "$plainList" | wc -l | sed -e 's/^[ \t]*//' )
+		for apiID in $( cat $plainList )
 			do
 				echo "Downloading ID number $apiID ( $resultInt out of $totalFetchedIDs )"
-				curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/$jssResource/id/$apiID  | xmllint --format - >> $fetchedResult
+				fetchedResult=$( curl --silent -k --user "$sourceJSSuser:$sourceJSSpw" -H "Accept: text/xml" -X GET  "$sourceJSS"JSSResource/$jssResource/id/$apiID  | xmllint --format - )
 				let "resultInt = $resultInt + 1"
-				fetchedResult="$localOutputDirectory"/"$jssResource"/fetched_xml/result"$resultInt".xml
+				
+				# read the object's JSS ID from the XML
+				itemID=$( echo "$fetchedResult" | grep "<id>" | awk -F '<id>|</id>' '{ print $2; exit; }')
+				
+				# read the object's JSS name from the XML
+				itemName=$( echo "$fetchedResult" | grep "<name>" | awk -F '<name>|</name>' '{ print $2; exit; }')
+				
+				# remove any colons, forward slashes and back slashes from the object's name
+				cleanedName=$( echo "$itemName" | sed 's/[:\/\\]//g' )
+				
+				# create a file name using name of the object and its ID
+				fileName="$cleanedName [ID $itemID]"
+				
+				# write the XML to the new file name
+				echo "$fetchedResult" > "$localOutputDirectory"/"$jssResource"/fetched_xml/"$fileName.xml"
 			done
 fi
 }
@@ -269,10 +311,10 @@ if [ $jssResource = "accounts" ]
 		echo -e "2. Passwords WILL NOT be included with standard accounts. Must enter manually in web app \n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
 		echo -e "\n\n"
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done	
 elif [ $jssResource = "computergroups" ]
 	then
@@ -282,33 +324,33 @@ elif [ $jssResource = "computergroups" ]
 		echo "3. Unfortunately, you will need to add computers back to Static groups after computers enroll in new jSS"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
 		echo -e "\nParsing computer groups to EXCLUDE computers in both static and smart groups..."
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "				
-				if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<is_smart>false</is_smart>"` ]]
+				if [[ $( cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<is_smart>false</is_smart>" ) ]]
 					then
 						echo "$resourceXML is a STATIC computer group..."
-						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/static_group_parsed_"$resourceXML"
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/static_group_"$resourceXML"
 					else
 						echo "$resourceXML is a SMART computer group..."
-						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/smart_group_parsed_"$resourceXML"
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/smart_group_"$resourceXML"
 				fi					
 			done							
 elif [ $jssResource = "advancedcomputersearches" ]
 	then
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "				
 				echo "$resourceXML is an Advanced Computer Search..."
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/advanced_computer_search_parsed_"$resourceXML"					
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"					
 			done
 elif [ $jssResource = "advancedmobiledevicesearches" ]
 	then
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "				
 				echo "$resourceXML is an Advanced Mobile Device Search..."
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/advanced_mobile_device_search_parsed_"$resourceXML"					
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<mobile_devices>/,/<\/mobile_devices/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"					
 			done
 elif [ $jssResource = "distributionpoints" ]
 	then
@@ -317,10 +359,10 @@ elif [ $jssResource = "distributionpoints" ]
 		echo "2. Passwords for Casper Read and Casper Admin accounts will NOT be included in migration!"
 		echo -e "\nThese must be set manually in web app\n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<failover_point>/,/<\/failover_point_url>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<failover_point>/,/<\/failover_point_url>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
 elif [ $jssResource = "ldapservers" ]
 	then
@@ -328,10 +370,10 @@ elif [ $jssResource = "ldapservers" ]
 		echo -e "\nPasswords for authenticating to LDAP will NOT be included!"
 		echo -e "You must enter passwords for LDAP in web app\n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
 elif [ $jssResource = "directorybindings" ]
 	then
@@ -339,10 +381,10 @@ elif [ $jssResource = "directorybindings" ]
 		echo -e "\nPasswords for directory binding account will NOT be included!"
 		echo -e "You must set these passwords for LDAP in web app\n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
 elif [ $jssResource = "packages" ]
 	then
@@ -350,15 +392,15 @@ elif [ $jssResource = "packages" ]
 		echo -e "\nFor packages with no category assigned, we need to strip"
 		echo -e "the category string from the xml, or it will fail to upload. \n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "No category assigned"` ]]
+				if [[ $( cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "No category assigned" ) ]]
 					then 
 						echo "Stripping category string from $resourceXML"
-						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<category>/,/<\/category/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<category>/,/<\/category/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 					else
-						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+						cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 				fi
 			done
 elif [ $jssResource = "osxconfigurationprofiles" ]
@@ -368,10 +410,10 @@ elif [ $jssResource = "osxconfigurationprofiles" ]
 		echo "Data regarding which computers have profiles will be stripped."
 		echo -e "This data will come back as computers enroll in destination JSS\n\n**********\n\n"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
 elif [ $jssResource = "restrictedsoftware" ]
 	then
@@ -384,10 +426,10 @@ elif [ $jssResource = "restrictedsoftware" ]
 		echo "They will need to be added later after they re-enroll"
 		read -p "Press RETURN key to acknowledge this message " returnChoice
 		echo -e "\nParsing Restricted Software ID's to EXCLUDE computers..."
-		for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+		for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 			do
 				echo "Parsing $resourceXML "
-				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+				cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 			done
 elif [ $jssResource = "policies" ]
 	then
@@ -406,26 +448,26 @@ elif [ $jssResource = "policies" ]
 		read -p "( \"y\" or \"n\" ) " omitLimitationsChoice
 		case $omitLimitationsChoice in
 			[yY] | [Yy][Ee][Ss])
-				for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+				for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 					do
 						echo "Parsing $resourceXML "
-						if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>"` ]]
+						if [[ $( cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>" ) ]]
 							then
 								echo "Policy $resourceXML is not assigned to a category.  Ignoring..."
 							else
-								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' | sed '/<limit_to_users>/,/<\/limit_to_users>/d' | sed '/<users>/,/<\/users>/d' | sed '/<user_groups>/,/<\/user_groups>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' | sed '/<limit_to_users>/,/<\/limit_to_users>/d' | sed '/<users>/,/<\/users>/d' | sed '/<user_groups>/,/<\/user_groups>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 						fi
 					done
 				;;
 			*)
-				for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+				for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 					do
 						echo "Parsing $resourceXML "
-						if [[ `cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>"` ]]
+						if [[ $( cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep "<name>No category assigned</name>" ) ]]
 							then
 								echo "Policy $resourceXML is not assigned to a category.  Ignoring..."
 							else
-								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+								cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" | sed '/<computers>/,/<\/computers>/d' | sed '/<self_service_icon>/,/<\/self_service_icon>/d' > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 						fi
 					done
 				;;
@@ -433,10 +475,10 @@ elif [ $jssResource = "policies" ]
 else
 	echo "For $jssResource - no need for extra special parsing.  Simply removing references to ID's"
 	sleep 2
-	for resourceXML in $(ls "$localOutputDirectory"/"$jssResource"/fetched_xml)
+	for resourceXML in $( ls "$localOutputDirectory"/"$jssResource"/fetched_xml )
 		do
 			echo "Parsing $resourceXML "
-			cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_"$resourceXML"
+			cat "$localOutputDirectory"/"$jssResource"/fetched_xml/$resourceXML | grep -v "<id>" > "$localOutputDirectory"/"$jssResource"/parsed_xml/"$resourceXML"
 		done
 fi
 }
@@ -476,89 +518,87 @@ if [ $jssResource = "accounts" ]
 		echo "For accounts, we need to post users first, then groups..."
 		echo -e "\n\n----------\nPosting users...\n"
 		sleep 1
-		totalParsedResourceXML_user=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_user* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_user=$( ls "$localOutputDirectory"/"$jssResource"/parsed_xml/user* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_user=0	
-		for parsedXML_user in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_user*)
+		for xmlPost_user in $( ls "$localOutputDirectory"/"$jssResource"/parsed_xml/user* )
 		do
-			xmlPost_user=$parsedXML_user
 			let "postInt_user = $postInt_user + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_user ( $postInt_user out of $totalParsedResourceXML_user ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/userid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_user"
+	 		curl -k -g "$destinationJSS"JSSResource/accounts/userid/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_user"
 		done
 		echo -e "\n\n----------\nPosting groups...\n"
 		sleep 1
-		totalParsedResourceXML_group=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_group* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_group=$( ls "$localOutputDirectory"/"$jssResource"/parsed_xml/group* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_group=0	
-		for parsedXML_group in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml/parsed_group*)
+		for xmlPost_group in $( ls "$localOutputDirectory"/"$jssResource"/parsed_xml/group* )
 		do
-			xmlPost_group=$parsedXML_group
 			let "postInt_group = $postInt_group + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_group ( $postInt_group out of $totalParsedResourceXML_group ) \n"
-	 		curl -k "$destinationJSS"JSSResource/accounts/groupid/99999 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_group"
+	 		curl -k -g "$destinationJSS"JSSResource/accounts/groupid/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_group"
 		done		
 elif [ $jssResource = "computergroups" ]
 	then 
 		echo "For computers, we need to post static groups before smart groups,"
 		echo "because smart groups can contain static groups"
 		echo -e "\n\n----------\nPosting static computer groups...\n"
-		totalParsedResourceXML_staticGroups=$(ls "$localOutputDirectory"/computergroups/parsed_xml/static_group_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_staticGroups=$( ls "$localOutputDirectory"/computergroups/parsed_xml/static_group_* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_static=0	
-		for parsedXML_static in $(ls "$localOutputDirectory"/computergroups/parsed_xml/static_group_parsed*)
+		for parsedXML_static in $( ls "$localOutputDirectory"/computergroups/parsed_xml/static_group_* )
 		do
 			xmlPost_static=$parsedXML_static
 			let "postInt_static = $postInt_static + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_static ( $postInt_static out of $totalParsedResourceXML_staticGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_static"
+	 		curl -k -g "$destinationJSS"JSSResource/computergroups/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_static"
 		done
 		echo -e "\n\n----------\nPosting smart computer groups...\n"
 		sleep 1
-		totalParsedResourceXML_smartGroups=$(ls "$localOutputDirectory"/computergroups/parsed_xml/smart_group_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_smartGroups=$( ls "$localOutputDirectory"/computergroups/parsed_xml/smart_group_* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_smart=0	
-		for parsedXML_smart in $(ls "$localOutputDirectory"/computergroups/parsed_xml/smart_group_parsed*)
+		for parsedXML_smart in $( ls "$localOutputDirectory"/computergroups/parsed_xml/smart_group_* )
 		do
 			xmlPost_smart=$parsedXML_smart
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_smartGroups ) \n"
-	 		curl -k "$destinationJSS"JSSResource/computergroups --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k -g "$destinationJSS"JSSResource/computergroups/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedcomputersearches" ]
 	then 
-		totalParsedResourceXML_advancedComputerSearches=$(ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/advanced_computer_search_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_advancedComputerSearches=$( ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_smart=0	
-		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/advanced_computer_search_parsed*)
+		for parsedXML_smart in $( ls "$localOutputDirectory"/advancedcomputersearches/parsed_xml/* )
 		do
 			xmlPost_smart=$parsedXML_smart
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedComputerSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedcomputersearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k -g "$destinationJSS"JSSResource/advancedcomputersearches/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
 		done
 elif [ $jssResource = "advancedmobiledevicesearches" ]
 	then 
-		totalParsedResourceXML_advancedMobileDeviceSearches=$(ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/advanced_mobile_device_search_parsed* | wc -l | sed -e 's/^[ \t]*//')
+		totalParsedResourceXML_advancedMobileDeviceSearches=$( ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/* | wc -l | sed -e 's/^[ \t]*//' )
 		postInt_smart=0	
-		for parsedXML_smart in $(ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/advanced_mobile_device_search_parsed*)
+		for parsedXML_smart in $( ls "$localOutputDirectory"/advancedmobiledevicesearches/parsed_xml/* )
 		do
 			xmlPost_smart=$parsedXML_smart
 			let "postInt_smart = $postInt_smart + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML_smart ( $postInt_smart out of $totalParsedResourceXML_advancedMobileDeviceSearches ) \n"
-	 		curl -k "$destinationJSS"JSSResource/advancedmobiledevicesearches --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
+	 		curl -k -g "$destinationJSS"JSSResource/advancedmobiledevicesearches/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost_smart"
 		done
 else
-	totalParsedResourceXML=$(ls "$localOutputDirectory"/"$jssResource"/parsed_xml | wc -l | sed -e 's/^[ \t]*//')
+	totalParsedResourceXML=$( ls "$localOutputDirectory"/"$jssResource"/parsed_xml | wc -l | sed -e 's/^[ \t]*//' )
 	postInt=0	
-	for parsedXML in $(ls "$localOutputDirectory"/"$jssResource"/parsed_xml)
+	for parsedXML in $( ls "$localOutputDirectory"/"$jssResource"/parsed_xml )
 		do
 			xmlPost="$localOutputDirectory"/"$jssResource"/parsed_xml/$parsedXML
 			let "postInt = $postInt + 1"
 			echo -e "\n----------\n----------"
 			echo -e "\nPosting $parsedXML ( $postInt out of $totalParsedResourceXML ) \n"
-	 		curl -k "$destinationJSS"JSSResource/$jssResource --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost"
+	 		curl -k -g "$destinationJSS"JSSResource/$jssResource/id/0 --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X POST -T "$xmlPost"
 		done
 fi
 if [ $jssResource != "null" ]
@@ -598,16 +638,16 @@ until (( $validChoice == 1 ))
 	done
 echo -e "\n\n"
 
-totalParsedResourceXML=$(ls "$resultOutputDirectory"/$manualPost | wc -l | sed -e 's/^[ \t]*//')
+totalParsedResourceXML=$( ls "$resultOutputDirectory"/$manualPost | wc -l | sed -e 's/^[ \t]*//' )
 postInt=0			
 		
-for manualPost in $(ls "$resultOutputDirectory")  
+for manualPost in $( ls "$resultOutputDirectory" )  
 	do 
 		xmlPost="$resultOutputDirectory"/$manualPost
 		let "postInt = $postInt + 1"
 		echo -e "\n----------\n----------"
 		echo -e "\nPosting $manualPost( $postInt out of $totalParsedResourceXML ) \n"
-		curl -k "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X "$curlAction" -T "$xmlPost"
+		curl -k -g "$destinationJSS"JSSResource/$jssResourceManualInput --user "$destinationJSSuser:$destinationJSSpw" -H "Content-Type: text/xml" -X "$curlAction" -T "$xmlPost"
 		
 	done 
 	
